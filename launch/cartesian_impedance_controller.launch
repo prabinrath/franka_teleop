@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="robot" default="fr3" doc="choose your robot. Possible values: [panda, fr3]"/>
+  <arg name="arm_id" default="$(arg robot)" />
+  <arg name="robot_ip" value="172.16.0.2" />
+  <arg name="load_gripper" default="true" />
+  
+  <include file="$(find franka_control)/launch/franka_control.launch" pass_all_args="true"/>
+  <include file="$(find spacenav_node)/launch/classic.launch" />
+
+  <rosparam command="load" file="$(find franka_teleop)/config/spacemouse_gains.yaml"/>
+  <rosparam command="load" file="$(find franka_teleop)/config/franka_teleop.yaml" subst_value="true" />
+  <node name="controller_spawner" pkg="controller_manager" type="spawner"
+      args="cartesian_impedance_controller" output="screen"/>
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" required="false" />
+</launch>

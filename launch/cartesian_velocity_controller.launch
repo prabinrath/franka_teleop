@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="robot" default="fr3" doc="choose your robot. Possible values: [panda, fr3]"/>
+  <arg name="arm_id" default="$(arg robot)" />
+  <arg name="robot_ip" value="172.16.0.2" />
+  <arg name="load_gripper" default="true" />
+  
+  <include file="$(find franka_control)/launch/franka_control.launch" pass_all_args="true"/>
+  <include file="$(find spacenav_node)/launch/classic.launch" />
+  
+  <rosparam command="load" file="$(find franka_teleop)/config/spacemouse_gains.yaml"/>
+  <rosparam command="load" file="$(find franka_teleop)/config/franka_teleop.yaml" subst_value="true" />
+  <rosparam command="load" file="$(find franka_control)/config/start_pose.yaml" subst_value="true" />
+  <node name="load_joint_effort_controller" pkg="controller_manager" type="spawner" 
+      args="effort_joint_trajectory_controller --stopped" output="screen" />
+  <node name="load_cartesian_velocity_controller" pkg="controller_manager" type="spawner" 
+      args="cartesian_velocity_controller" output="screen" />
+  <node name="move_to_start_node" pkg="franka_teleop" type="move_to_start_node.py" output="screen" required="true"
+    args="--switch_controller cartesian_velocity_controller">
+    <param name="max_dq" value="0.2" />
+  </node>
+</launch>

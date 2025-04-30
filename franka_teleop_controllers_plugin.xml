@@ -1,0 +1,12 @@
+<library path="lib/libfranka_teleop">
+  <class name="franka_teleop/CartesianImpedanceController" type="franka_teleop::CartesianImpedanceController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that takes spacemouse input for operational space control
+    </description>
+  </class>
+  <class name="franka_teleop/CartesianVelocityController" type="franka_teleop::CartesianVelocityController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that takes spacemouse input for differential ik control
+    </description>
+  </class>
+</library>

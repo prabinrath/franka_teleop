@@ -1,0 +1,18 @@
+spacemouse_gains:
+  cartesian_velocity:
+    x_axis: 0.1
+    y_axis: 0.1
+    z_axis: 0.1
+    roll: 0.2
+    pitch: 0.2
+    yaw: 0.2
+    lpf_const: 0.995
+  cartesian_impedance:
+    x_axis: 0.2
+    y_axis: 0.2
+    z_axis: 0.2
+    roll: 1.0
+    pitch: 1.0
+    yaw: 1.0
+    lpf_const_t: 0.995
+    lpf_const_o: 0.995
