@@ -9,6 +9,7 @@ from trajectory_msgs.msg import JointTrajectoryPoint
 from control_msgs.msg import FollowJointTrajectoryAction, \
                              FollowJointTrajectoryGoal, FollowJointTrajectoryResult
 from controller_manager_msgs.srv import SwitchController
+from franka_msgs.msg import ErrorRecoveryActionGoal
 from franka_gripper.msg import MoveAction, MoveGoal
 import argparse
 
@@ -35,7 +36,8 @@ class MoveToStartNode():
             self.policy_callback,
             queue_size=1,
         )
-        
+        self.error_recovery_pub = ros.Publisher("/franka_control/error_recovery/goal", 
+                                                ErrorRecoveryActionGoal, queue_size=1)
         ros.spin()
     
     def joy_callback(self, msg):
@@ -45,6 +47,8 @@ class MoveToStartNode():
             # use programming mode to manually steer the robot close to default position
             # then move to start
             self.move_to_start()
+        if msg.buttons[12] > 0:
+            self.error_recovery_pub.publish(ErrorRecoveryActionGoal())
     
     def policy_callback(self, msg):
         self.move_to_start()

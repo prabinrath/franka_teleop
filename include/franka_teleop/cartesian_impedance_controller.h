@@ -1,10 +1,11 @@
-// Copyright (c) 2023 Franka Robotics GmbH
-// Use of this source code is governed by the Apache-2.0 license, see LICENSE
+// Refered to https://github.com/frankaemika/franka_ros/tree/develop/franka_example_controllers
+
 #pragma once
 
 #include <memory>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include <controller_interface/multi_interface_controller.h>
 #include <dynamic_reconfigure/server.h>
@@ -14,11 +15,16 @@
 #include <hardware_interface/robot_hw.h>
 #include <ros/node_handle.h>
 #include <ros/time.h>
+#include <actionlib/client/simple_action_client.h>
+#include <franka_gripper/GraspAction.h>
+#include <franka_gripper/MoveAction.h>
 #include <Eigen/Dense>
 
 #include <franka_teleop/compliance_paramConfig.h>
 #include <franka_hw/franka_model_interface.h>
 #include <franka_hw/franka_state_interface.h>
+#include <realtime_tools/realtime_publisher.h>
+#include <franka_teleop/ZeroJacobian.h>
 
 namespace franka_teleop {
 
@@ -31,6 +37,8 @@ class CartesianImpedanceController : public controller_interface::MultiInterface
   void starting(const ros::Time&) override;
   void update(const ros::Time&, const ros::Duration& period) override;
   void joyCallback(const sensor_msgs::Joy::ConstPtr& msg);
+  void grasp();
+  void drop();
 
  private:
   // Saturation
@@ -41,18 +49,33 @@ class CartesianImpedanceController : public controller_interface::MultiInterface
   std::unique_ptr<franka_hw::FrankaStateHandle> state_handle_;
   std::unique_ptr<franka_hw::FrankaModelHandle> model_handle_;
   std::vector<hardware_interface::JointHandle> joint_handles_;
+  std::array<double, 42> jacobian_array;
 
   double filter_params_{0.005};
   double nullspace_stiffness_{20.0};
   double nullspace_stiffness_target_{20.0};
+  double joint1_nullspace_stiffness_{20.0};
+  double joint1_nullspace_stiffness_target_{20.0};
   const double delta_tau_max_{1.0};
   Eigen::Matrix<double, 6, 6> cartesian_stiffness_;
   Eigen::Matrix<double, 6, 6> cartesian_stiffness_target_;
   Eigen::Matrix<double, 6, 6> cartesian_damping_;
   Eigen::Matrix<double, 6, 6> cartesian_damping_target_;
+  Eigen::Matrix<double, 6, 6> Ki_;
+  Eigen::Matrix<double, 6, 6> Ki_target_;
+
+  // Created from the input parameters
+  Eigen::Matrix<double, 3, 1> translational_clip_min_;
+  Eigen::Matrix<double, 3, 1> translational_clip_max_;
+  Eigen::Matrix<double, 3, 1> rotational_clip_min_;
+  Eigen::Matrix<double, 3, 1> rotational_clip_max_;
   Eigen::Matrix<double, 7, 1> q_d_nullspace_;
   Eigen::Vector3d position_d_;
+  Eigen::Matrix<double, 6, 1> error_;
+  Eigen::Matrix<double, 6, 1> error_i;
   Eigen::Quaterniond orientation_d_;
+  Eigen::Vector3d position_d_target_;
+  Eigen::Quaterniond orientation_d_target_;
 
   // Dynamic reconfigure
   std::unique_ptr<dynamic_reconfigure::Server<franka_teleop::compliance_paramConfig>>
@@ -60,6 +83,15 @@ class CartesianImpedanceController : public controller_interface::MultiInterface
   ros::NodeHandle dynamic_reconfigure_compliance_param_node_;
   void complianceParamCallback(franka_teleop::compliance_paramConfig& config,
                                uint32_t level);
+  void publishZeroJacobian(const ros::Time& time);
+  realtime_tools::RealtimePublisher<franka_teleop::ZeroJacobian> publisher_franka_jacobian_;
+  void publishDebug(const ros::Time& time);
+  // Equilibrium pose subscriber
+  ros::Subscriber sub_equilibrium_pose_;
+  void equilibriumPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg);
+
+  std::unique_ptr< actionlib::SimpleActionClient<franka_gripper::GraspAction> > grasp_action_;
+  std::unique_ptr< actionlib::SimpleActionClient<franka_gripper::MoveAction> > move_action_;
 
   // space mouse setup
   struct ControlParams {
@@ -75,6 +107,9 @@ class CartesianImpedanceController : public controller_interface::MultiInterface
   ros::Subscriber spacemouse_sub_;
   std::array<double, 6> joy_ctrl{};
   std::array<double, 6> lpf_vel{};
+  double deadband = 1e-3;
+  bool grasp_toggle;
+  bool is_grasped;
 };
 
 }  // namespace franka_teleop

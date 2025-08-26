@@ -10,7 +10,15 @@
 
   <rosparam command="load" file="$(find franka_teleop)/config/spacemouse_gains.yaml"/>
   <rosparam command="load" file="$(find franka_teleop)/config/franka_teleop.yaml" subst_value="true" />
-  <node name="controller_spawner" pkg="controller_manager" type="spawner"
+  <rosparam command="load" file="$(find franka_control)/config/start_pose.yaml" subst_value="true" />
+  <node name="load_joint_effort_controller" pkg="controller_manager" type="spawner" 
+      args="effort_joint_trajectory_controller --stopped" output="screen" />
+  <node name="load_cartesian_impedance_controller" pkg="controller_manager" type="spawner"
       args="cartesian_impedance_controller" output="screen"/>
-  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" required="false" />
+  <node name="move_to_start_node" pkg="franka_teleop" type="move_to_start_node.py" output="screen" required="true"
+    args="--switch_controller cartesian_impedance_controller">
+    <param name="max_dq" value="0.2" />
+  </node>
+  <node name="cartsian_impedence_commander_node" pkg="franka_teleop" type="cartsian_impedence_commander.py" output="screen" required="true"/>
+  <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" required="false" /> -->
 </launch>

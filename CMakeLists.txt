@@ -35,6 +35,9 @@ if(NOT Franka_FOUND)
   find_package(Franka 0.8.0 REQUIRED)
 endif()
 
+add_message_files(FILES ZeroJacobian.msg)
+generate_messages()
+
 # merge Franka + INCLUDE_DIRS in topological order
 list_insert_in_workspace_order(catkin_INCLUDE_DIRS ${Franka_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
@@ -78,6 +81,9 @@ add_library(franka_teleop
 add_dependencies(franka_teleop
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${PROJECT_NAME}_gencpp
+  ${PROJECT_NAME}_gencfg
 )
 
 target_link_libraries(franka_teleop PUBLIC
@@ -113,5 +119,9 @@ install(FILES franka_teleop_controllers_plugin.xml
 )
 catkin_install_python(
   PROGRAMS scripts/move_to_start_node.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+catkin_install_python(
+  PROGRAMS scripts/cartsian_impedence_commander.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
