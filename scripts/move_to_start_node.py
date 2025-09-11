@@ -5,6 +5,7 @@ import rospy as ros
 from actionlib import SimpleActionClient
 from std_msgs.msg import Empty
 from sensor_msgs.msg import JointState, Joy
+from quest2ros.msg import OVR2ROSInputs
 from trajectory_msgs.msg import JointTrajectoryPoint
 from control_msgs.msg import FollowJointTrajectoryAction, \
                              FollowJointTrajectoryGoal, FollowJointTrajectoryResult
@@ -36,6 +37,7 @@ class MoveToStartNode():
             self.policy_callback,
             queue_size=1,
         )
+        self.quest_sub = ros.Subscriber('/q2r_right_hand_inputs', OVR2ROSInputs, self.quest_callback, queue_size=1)
         self.error_recovery_pub = ros.Publisher("/franka_control/error_recovery/goal", 
                                                 ErrorRecoveryActionGoal, queue_size=1)
         ros.spin()
@@ -48,6 +50,14 @@ class MoveToStartNode():
             # then move to start
             self.move_to_start()
         if msg.buttons[12] > 0:
+            self.error_recovery_pub.publish(ErrorRecoveryActionGoal())
+    
+    def quest_callback(self, msg):
+        if msg.button_lower:
+            # A button on Right hand controller
+            self.move_to_start()
+        if msg.button_upper:
+            # B button on Right hand controller
             self.error_recovery_pub.publish(ErrorRecoveryActionGoal())
     
     def policy_callback(self, msg):

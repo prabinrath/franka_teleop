@@ -1,16 +1,25 @@
 <?xml version="1.0" ?>
 <launch>
   <arg name="robot" default="fr3" doc="choose your robot. Possible values: [panda, fr3]"/>
+  <arg name="control" default="quest" doc="choose your control device. Possible values: [spacemouse, quest]"/>
   <arg name="arm_id" default="$(arg robot)" />
   <arg name="robot_ip" value="172.16.0.2" />
   <arg name="load_gripper" default="true" />
   
   <include file="$(find franka_control)/launch/franka_control.launch" pass_all_args="true"/>
-  <include file="$(find spacenav_node)/launch/classic.launch" />
+  <include file="$(find spacenav_node)/launch/classic.launch" if="$(eval arg('control') == 'spacemouse')" />
 
-  <rosparam command="load" file="$(find franka_teleop)/config/spacemouse_gains.yaml"/>
+  <rosparam command="load" file="$(find franka_teleop)/config/spacemouse_gains.yaml" if="$(eval arg('control') == 'spacemouse')" />
   <rosparam command="load" file="$(find franka_teleop)/config/franka_teleop.yaml" subst_value="true" />
   <rosparam command="load" file="$(find franka_control)/config/start_pose.yaml" subst_value="true" />
+
+  <group if="$(eval arg('control') == 'quest')">
+    <include file="$(find ros_tcp_endpoint)/launch/endpoint.launch">
+      <arg name="tcp_ip" value="192.168.1.108"/>
+      <arg name="tcp_port" value="10000"/>
+    </include>
+  </group>
+
   <node name="load_joint_effort_controller" pkg="controller_manager" type="spawner" 
       args="effort_joint_trajectory_controller --stopped" output="screen" />
   <node name="load_cartesian_impedance_controller" pkg="controller_manager" type="spawner"
@@ -19,6 +28,13 @@
     args="--switch_controller cartesian_impedance_controller">
     <param name="max_dq" value="0.2" />
   </node>
-  <node name="cartsian_impedence_commander_node" pkg="franka_teleop" type="cartsian_impedence_commander.py" output="screen" required="true"/>
+
+  <group if="$(eval arg('control') == 'spacemouse')">
+    <node name="cartsian_impedence_commander_spacemouse_node" pkg="franka_teleop" type="cartsian_impedence_commander_spacemouse.py" output="screen" required="true"/>
+  </group>
+  <group if="$(eval arg('control') == 'quest')">
+    <node name="cartsian_impedence_commander_quest_node" pkg="franka_teleop" type="cartsian_impedence_commander_quest.py" output="screen" required="true"/>
+  </group>
+
   <!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" required="false" /> -->
 </launch>

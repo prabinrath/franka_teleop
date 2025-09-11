@@ -6,6 +6,7 @@ from geometry_msgs.msg import PoseStamped
 from franka_msgs.msg import FrankaState
 from scipy.spatial.transform import Rotation as R
 
+
 class SpaceMouseFrankaControl:
     def __init__(self):
         rospy.init_node('spacemouse_franka_control')

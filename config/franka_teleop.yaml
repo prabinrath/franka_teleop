@@ -1,7 +1,3 @@
-cartesian_pose_controller:
-    type: franka_teleop/CartesianPoseController
-    arm_id: $(arg arm_id)
-
 cartesian_velocity_controller:
     type: franka_teleop/CartesianVelocityController
     arm_id: $(arg arm_id)

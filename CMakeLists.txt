@@ -118,10 +118,6 @@ install(FILES franka_teleop_controllers_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 catkin_install_python(
-  PROGRAMS scripts/move_to_start_node.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-catkin_install_python(
-  PROGRAMS scripts/cartsian_impedence_commander.py
+  PROGRAMS scripts/move_to_start_node.py scripts/cartsian_impedence_commander_spacemouse.py scripts/cartsian_impedence_commander_quest.py 
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
