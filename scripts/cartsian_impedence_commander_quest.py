@@ -5,7 +5,7 @@ from actionlib import SimpleActionClient
 from geometry_msgs.msg import PoseStamped
 from franka_msgs.msg import FrankaState
 from quest2ros.msg import OVR2ROSInputs
-from franka_gripper.msg import MoveAction, MoveGoal, GraspGoal
+from franka_gripper.msg import GraspAction, GraspGoal
 from scipy.spatial.transform import Rotation as R
 
 
@@ -31,7 +31,7 @@ class SpaceMouseFrankaControl:
         
         self.is_grasped = False
         self.grasp_toggle = False
-        self.gripper_client = SimpleActionClient("/franka_gripper/move", MoveAction)
+        self.gripper_client = SimpleActionClient("/franka_gripper/grasp", GraspAction)
         self.gripper_client.wait_for_server()
 
         rospy.loginfo("Quest → Franka equilibrium pose teleop ready.")
@@ -102,7 +102,7 @@ class SpaceMouseFrankaControl:
             else:
                 q_new = (R.from_quat(q_q) * R.from_quat(q_org)).as_quat()
 
-            p_new = p_org + p_q
+            p_new = p_org + p_q * 2.0
             
             # ---- Publish PoseStamped in the same frame as the state ----
             cmd = PoseStamped()
@@ -120,10 +120,13 @@ class SpaceMouseFrankaControl:
             
         if msg.press_index and not self.grasp_toggle:
             if self.is_grasped:
-                move_goal = MoveGoal()
-                move_goal.width = 0.08
-                move_goal.speed = 0.1
-                self.gripper_client.send_goal(move_goal)
+                grasp_goal = GraspGoal()
+                grasp_goal.width = 0.08
+                grasp_goal.epsilon.inner = 0.08
+                grasp_goal.epsilon.outer = 0.08
+                grasp_goal.speed = 0.1
+                grasp_goal.force = 5.0
+                self.gripper_client.send_goal(grasp_goal)
                 self.is_grasped = False
             else:
                 grasp_goal = GraspGoal()
