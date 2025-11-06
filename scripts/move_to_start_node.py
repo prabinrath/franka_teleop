@@ -50,6 +50,7 @@ class MoveToStartNode():
             # then move to start
             self.move_to_start()
         if msg.buttons[12] > 0:
+            # F button on space mouse
             self.error_recovery_pub.publish(ErrorRecoveryActionGoal())
     
     def quest_callback(self, msg):
