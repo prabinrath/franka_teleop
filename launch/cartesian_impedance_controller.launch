@@ -7,9 +7,9 @@
   <arg name="load_gripper" default="true" />
   
   <include file="$(find franka_control)/launch/franka_control.launch" pass_all_args="true"/>
-  <include file="$(find spacenav_node)/launch/classic.launch" if="$(eval arg('control') == 'spacemouse')" />
+  <include file="$(find spacenav_node)/launch/classic.launch" />
 
-  <rosparam command="load" file="$(find franka_teleop)/config/spacemouse_gains.yaml" if="$(eval arg('control') == 'spacemouse')" />
+  <rosparam command="load" file="$(find franka_teleop)/config/spacemouse_gains.yaml" />
   <rosparam command="load" file="$(find franka_teleop)/config/franka_teleop.yaml" subst_value="true" />
   <rosparam command="load" file="$(find franka_control)/config/start_pose.yaml" subst_value="true" />
 
