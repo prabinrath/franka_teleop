@@ -49,8 +49,8 @@ class MoveToStartNode():
             # use programming mode to manually steer the robot close to default position
             # then move to start
             self.move_to_start()
-        if msg.buttons[12] > 0:
-            # F button on space mouse
+        if msg.buttons[5] > 0:
+            # ESC button on space mouse
             self.error_recovery_pub.publish(ErrorRecoveryActionGoal())
     
     def quest_callback(self, msg):
